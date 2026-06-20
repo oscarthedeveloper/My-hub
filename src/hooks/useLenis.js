@@ -8,6 +8,9 @@ import Lenis from 'lenis'
  */
 export default function useLenis(wrapperRef, contentRef) {
   useEffect(() => {
+    // Touch-enheter (mobil/surfplatta) — hoppa över Lenis, native scroll sköter det
+    if (window.matchMedia('(pointer: coarse)').matches) return
+
     const wrapper = wrapperRef?.current
     const content = contentRef?.current
     if (!wrapper || !content) return

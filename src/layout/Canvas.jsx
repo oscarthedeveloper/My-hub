@@ -6,6 +6,7 @@ import Dashboard from '@/views/Dashboard'
 import ProjectsView from '@/views/projects/ProjectsView'
 import ProjectDetail from '@/views/projects/ProjectDetail'
 import LinguisticsHome from '@/views/linguistics/LinguisticsHome'
+import TranaView from '@/views/linguistics/TranaView'
 import LanguageLayout from '@/views/linguistics/LanguageLayout'
 import WordsView from '@/views/linguistics/shared/WordsView'
 import GrammarView from '@/views/linguistics/shared/GrammarView'
@@ -46,7 +47,7 @@ export default function Canvas() {
         </div>
       ) : (
         /* ── Övriga vyer: Lenis-scrollat innehåll ── */
-        <div ref={canvasRef} className="h-full overflow-hidden">
+        <div ref={canvasRef} className="h-full overflow-y-auto md:overflow-hidden">
           <div ref={contentRef} className="min-h-full">
             <Routes>
               <Route path="/" element={<Dashboard />} />
@@ -55,6 +56,7 @@ export default function Canvas() {
               <Route path="/projekt/:id" element={<ProjectDetail />} />
 
               <Route path="/lingvistik" element={<LinguisticsHome />} />
+              <Route path="/lingvistik/trana" element={<TranaView />} />
               <Route path="/lingvistik/:lang" element={<LanguageLayout />}>
                 <Route index element={<Navigate to="ordforrad" replace />} />
                 <Route path="ordforrad"     element={<WordsView />} />

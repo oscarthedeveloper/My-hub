@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BookOpen, Hash, FileText, BookMarked } from 'lucide-react'
+import { BookOpen, Hash, FileText, BookMarked, HardDriveDownload, Dumbbell } from 'lucide-react'
 import { useLinguisticsStore } from '@/store'
 import { useFadeIn, useStaggerIn } from '@/hooks/useGSAP'
+import { syncWordsToFile } from '@/lib/wordExport'
 
 const LANGS = [
   {
@@ -51,15 +53,60 @@ export default function LinguisticsHome() {
   const totalWords = words.length
   const totalNotes = notes.length + grammarEntries.length
 
+  const [syncStatus, setSyncStatus] = useState(null) // null | 'syncing' | { added, updated, kept, total } | { error } | { cancelled } | { fallback }
+
+  async function handleSync() {
+    setSyncStatus('syncing')
+    const result = await syncWordsToFile(words)
+    setSyncStatus(result)
+    if (!result.cancelled && !result.error) {
+      setTimeout(() => setSyncStatus(null), 5000)
+    }
+  }
+
   return (
     <div ref={ref} className="min-h-screen p-4 md:p-8">
 
       {/* ── Header ── */}
-      <div className="mb-2">
-        <h1 className="font-display text-3xl text-text">Lingvistik</h1>
-        <p className="mt-1 font-mono text-xs text-muted">
-          {totalWords} ord · {totalNotes} anteckningar · {readingLog.length} läsposter
-        </p>
+      <div className="mb-2 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h1 className="font-display text-3xl text-text">Lingvistik</h1>
+          <p className="mt-1 font-mono text-xs text-muted">
+            {totalWords} ord · {totalNotes} anteckningar · {readingLog.length} läsposter
+          </p>
+        </div>
+
+        {/* ── Åtgärder ── */}
+        <div className="flex flex-col gap-2 md:items-end">
+          <button
+            onClick={() => navigate('/lingvistik/trana')}
+            disabled={totalWords === 0}
+            className="flex items-center justify-center gap-2 rounded-xl border border-accent/30 bg-accent/8 px-3 py-2.5 font-mono text-[12px] text-accent transition-all hover:bg-accent/15 disabled:opacity-40 md:justify-start"
+          >
+            <Dumbbell size={13} /> Träna ordförråd
+          </button>
+          <button
+            onClick={handleSync}
+            disabled={syncStatus === 'syncing' || totalWords === 0}
+            title="Slå ihop och spara alla ord i en lokal JSON-fil"
+            className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5 font-mono text-[12px] text-muted transition-all hover:border-border2 hover:text-text disabled:opacity-40 md:justify-start"
+          >
+            <HardDriveDownload size={13} />
+            {syncStatus === 'syncing' ? 'Synkar…' : 'Synka ordbok till fil'}
+          </button>
+          {syncStatus && syncStatus !== 'syncing' && (
+            <p className="font-mono text-[11px] text-center md:text-right" style={{
+              color: syncStatus.error ? '#e11d48'
+                   : syncStatus.cancelled ? 'rgb(var(--color-dim))'
+                   : '#34d399'
+            }}>
+              {syncStatus.error    ? `// fel: ${syncStatus.error}`
+               : syncStatus.cancelled ? '// avbruten'
+               : syncStatus.fallback  ? `// nedladdad (${syncStatus.total} ord)`
+               : `// +${syncStatus.added} nya · ${syncStatus.updated} uppdaterade · ${syncStatus.total} totalt`}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* ── Divider ── */}

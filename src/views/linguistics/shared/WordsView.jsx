@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, Search, X, Trash2 } from 'lucide-react'
+import { Plus, Search, X, Trash2, Pencil, Check } from 'lucide-react'
 import { useLinguisticsStore } from '@/store'
 import { LANG_CONFIG } from '../LanguageLayout'
 import LinkedDocsSection from '@/components/LinkedDocsSection'
@@ -56,7 +56,7 @@ export default function WordsView() {
   const config = LANG_CONFIG[lang] ?? {}
   const fields = WORD_FIELDS[lang] ?? []
 
-  const { words, addWord, removeWord } = useLinguisticsStore()
+  const { words, addWord, updateWord, removeWord } = useLinguisticsStore()
   const langWords = useMemo(() => words.filter(w => w.language === lang), [words, lang])
 
   const [showForm, setShowForm] = useState(false)
@@ -127,7 +127,7 @@ export default function WordsView() {
               <X size={15} />
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {fields.map(field =>
               field.type === 'select' ? (
                 <FormSelect
@@ -162,8 +162,10 @@ export default function WordsView() {
             key={w.id}
             word={w}
             lang={lang}
+            fields={fields}
             color={config.color}
             onDelete={() => setConfirmDelete(w.id)}
+            onUpdate={(patch) => updateWord(w.id, patch)}
           />
         ))}
         {filtered.length === 0 && (
@@ -196,18 +198,46 @@ export default function WordsView() {
   )
 }
 
-function WordCard({ word, lang, color, onDelete }) {
-  const [expanded, setExpanded] = useState(false)
+function WordCard({ word, lang, fields, color, onDelete, onUpdate }) {
+  const [expanded, setExpanded]   = useState(false)
+  const [editing,  setEditing]    = useState(false)
+  const [draft,    setDraft]      = useState({})
+
+  function startEdit(e) {
+    e.stopPropagation()
+    const initial = Object.fromEntries(
+      fields.map(f => [f.key, f.key === 'tags'
+        ? (word.tags ?? []).join(', ')
+        : (word[f.key] ?? '')])
+    )
+    setDraft(initial)
+    setEditing(true)
+    setExpanded(true)
+  }
+
+  function saveEdit(e) {
+    e.stopPropagation()
+    const patch = {
+      ...draft,
+      tags: draft.tags ? draft.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+    }
+    onUpdate(patch)
+    setEditing(false)
+  }
+
+  function cancelEdit(e) {
+    e.stopPropagation()
+    setEditing(false)
+  }
 
   return (
-    <div
-      className="group rounded-xl border border-border bg-surface transition-colors hover:border-border2"
-    >
+    <div className="group rounded-xl border border-border bg-surface transition-colors hover:border-border2">
+
+      {/* ── Header row ── */}
       <div
         className="flex cursor-pointer items-start gap-3 px-4 py-3"
-        onClick={() => setExpanded(s => !s)}
+        onClick={() => !editing && setExpanded(s => !s)}
       >
-        {/* Word */}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
             <span className="font-mono text-sm font-medium" style={{ color }}>
@@ -231,45 +261,99 @@ function WordCard({ word, lang, color, onDelete }) {
           <p className="mt-0.5 text-sm text-text">{word.definition}</p>
         </div>
 
-        {/* Tags */}
-        <div className="flex flex-wrap justify-end gap-1 shrink-0">
-          {(word.tags ?? []).slice(0, 3).map(tag => (
-            <span key={tag} className="rounded border border-border font-mono text-[10px] px-1.5 py-px text-muted">
-              {tag}
-            </span>
-          ))}
+        {/* Tags + edit button */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap justify-end gap-1">
+            {(word.tags ?? []).slice(0, 3).map(tag => (
+              <span key={tag} className="rounded border border-border font-mono text-[10px] px-1.5 py-px text-muted">
+                {tag}
+              </span>
+            ))}
+          </div>
+          <button
+            onClick={startEdit}
+            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 rounded-md p-1.5 text-dim hover:text-muted transition-all"
+            title="Redigera"
+          >
+            <Pencil size={12} />
+          </button>
         </div>
       </div>
 
-      {/* Expanded detail */}
+      {/* ── Expanded / edit panel ── */}
       {expanded && (
-        <div className="border-t border-border px-4 py-3 space-y-2">
-          {word.etymology && (
-            <p className="font-mono text-xs text-muted">
-              <span className="text-dim">etymologi  </span>{word.etymology}
-            </p>
+        <div className="border-t border-border px-4 py-3 space-y-3">
+          {editing ? (
+            /* ── Edit form ── */
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {fields.map(field =>
+                  field.type === 'select' ? (
+                    <FormSelect
+                      key={field.key}
+                      label={field.label}
+                      value={draft[field.key] ?? ''}
+                      onChange={v => setDraft(d => ({ ...d, [field.key]: v }))}
+                      options={field.options}
+                    />
+                  ) : (
+                    <FormField
+                      key={field.key}
+                      label={field.label}
+                      value={draft[field.key] ?? ''}
+                      onChange={v => setDraft(d => ({ ...d, [field.key]: v }))}
+                      required={field.required}
+                    />
+                  )
+                )}
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={saveEdit}
+                  className="flex items-center gap-1.5 rounded-lg bg-accent/10 px-3 py-1.5 font-mono text-[12px] text-accent ring-1 ring-accent/20 hover:bg-accent/20 transition-all"
+                >
+                  <Check size={12} /> Spara
+                </button>
+                <button onClick={cancelEdit} className="btn-ghost text-[12px]">Avbryt</button>
+              </div>
+            </>
+          ) : (
+            /* ── Read-only detail ── */
+            <>
+              {word.etymology && (
+                <p className="font-mono text-xs text-muted">
+                  <span className="text-dim">etymologi  </span>{word.etymology}
+                </p>
+              )}
+              {word.synonyms && (
+                <p className="font-mono text-xs text-muted">
+                  <span className="text-dim">synonymer  </span>{word.synonyms}
+                </p>
+              )}
+              {word.plural && (
+                <p className="font-mono text-xs text-muted">
+                  <span className="text-dim">plural     </span>{word.plural}
+                </p>
+              )}
+              {word.examples && (
+                <p className="font-mono text-xs italic text-muted">"{word.examples}"</p>
+              )}
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  onClick={startEdit}
+                  className="flex items-center gap-1 font-mono text-[11px] text-muted hover:text-text transition-colors"
+                >
+                  <Pencil size={11} /> redigera
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDelete() }}
+                  className="flex items-center gap-1 font-mono text-[11px] text-muted hover:text-rose transition-colors"
+                >
+                  <Trash2 size={11} /> ta bort
+                </button>
+              </div>
+            </>
           )}
-          {word.synonyms && (
-            <p className="font-mono text-xs text-muted">
-              <span className="text-dim">synonymer  </span>{word.synonyms}
-            </p>
-          )}
-          {word.plural && (
-            <p className="font-mono text-xs text-muted">
-              <span className="text-dim">plural     </span>{word.plural}
-            </p>
-          )}
-          {word.examples && (
-            <p className="font-mono text-xs italic text-muted">"{word.examples}"</p>
-          )}
-          <div className="flex justify-end pt-1">
-            <button
-              onClick={(e) => { e.stopPropagation(); onDelete() }}
-              className="flex items-center gap-1 font-mono text-[11px] text-muted hover:text-rose transition-colors"
-            >
-              <Trash2 size={11} /> ta bort
-            </button>
-          </div>
         </div>
       )}
     </div>
