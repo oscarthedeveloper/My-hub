@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import Sidebar from '@/layout/Sidebar'
@@ -8,6 +8,7 @@ import LoginView from '@/views/auth/LoginView'
 
 export default function App() {
   const { user, loading, setUser } = useAuthStore()
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   useEffect(() => {
     if (!supabase) {
@@ -48,13 +49,13 @@ export default function App() {
         }}
       />
 
-      {/* Sidebar: dold på mobil, synlig på md+ */}
-      <Sidebar />
+      {/* Sidebar: statisk på lg+, drawer på mobil */}
+      <Sidebar mobileOpen={drawerOpen} onMobileClose={() => setDrawerOpen(false)} />
 
       {/* Huvud-innehåll + mobil-nav staplade vertikalt */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Canvas />
-        <MobileNav />
+        <MobileNav onMenuOpen={() => setDrawerOpen(true)} />
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { Sun, Moon, LogOut } from 'lucide-react'
+import { Sun, Moon, LogOut, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import {
   useThemeStore,
@@ -42,9 +42,9 @@ function NetworkLogo({ size = 18 }) {
   )
 }
 
-// ─── Sidebar ─────────────────────────────────────────────────────────────────
+// ─── Delat nav-innehåll ───────────────────────────────────────────────────────
 
-export default function Sidebar() {
+function SidebarContent({ onNavClick }) {
   const location  = useLocation()
   const now       = useClock()
   const { theme, toggleTheme } = useThemeStore()
@@ -115,16 +115,13 @@ export default function Sidebar() {
   }
 
   return (
-    <aside
-      className="relative z-10 hidden lg:flex h-full flex-col border-r border-border bg-surface"
-      style={{ width: 240, minWidth: 240, flexShrink: 0 }}
-    >
+    <>
       {/* ── Logo ── */}
       <div className="flex items-center gap-3 border-b border-border px-5 py-4">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent ring-1 ring-accent/20">
           <NetworkLogo size={18} />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="font-display text-[14px] font-bold leading-tight text-text">
             Oscars nätverk
           </p>
@@ -133,6 +130,15 @@ export default function Sidebar() {
             <span className="font-mono text-[10px] text-muted">online · v1.0</span>
           </div>
         </div>
+        {/* Stängknapp synlig bara i drawer (mobil) */}
+        {onNavClick && (
+          <button
+            onClick={onNavClick}
+            className="ml-auto rounded-lg p-1.5 text-muted hover:bg-surface2 hover:text-text lg:hidden"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       {/* ── Navigation ── */}
@@ -146,6 +152,7 @@ export default function Sidebar() {
             <NavLink
               key={item.id}
               to={item.path}
+              onClick={onNavClick}
               className={[
                 'group mb-0.5 flex items-center justify-between rounded-xl px-3 py-2.5 transition-all',
                 isActive ? 'bg-surface2 ring-1 ring-border' : 'hover:bg-surface2/60',
@@ -206,6 +213,50 @@ export default function Sidebar() {
           </div>
         </div>
       </div>
-    </aside>
+    </>
+  )
+}
+
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
+
+export default function Sidebar({ mobileOpen, onMobileClose }) {
+  // Stäng drawer vid route-byte
+  const location = useLocation()
+  useEffect(() => {
+    if (mobileOpen) onMobileClose?.()
+  }, [location.pathname]) // eslint-disable-line
+
+  return (
+    <>
+      {/* ── Desktop: statisk sidebar ── */}
+      <aside
+        className="relative z-10 hidden lg:flex h-full flex-col border-r border-border bg-surface"
+        style={{ width: 240, minWidth: 240, flexShrink: 0 }}
+      >
+        <SidebarContent />
+      </aside>
+
+      {/* ── Mobil: overlay + slide-in drawer ── */}
+      {/* Overlay */}
+      <div
+        className={[
+          'fixed inset-0 z-40 bg-black/50 lg:hidden transition-opacity duration-300',
+          mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
+        ].join(' ')}
+        onClick={onMobileClose}
+        aria-hidden="true"
+      />
+      {/* Drawer */}
+      <aside
+        className={[
+          'fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-surface lg:hidden',
+          'transition-transform duration-300 ease-in-out',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full',
+        ].join(' ')}
+        style={{ width: 272 }}
+      >
+        <SidebarContent onNavClick={onMobileClose} />
+      </aside>
+    </>
   )
 }

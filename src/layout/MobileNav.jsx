@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { Home, Code2, BookOpen, GraduationCap, Users, Map } from 'lucide-react'
+import { Home, Code2, BookOpen, GraduationCap, Users, Map, Menu } from 'lucide-react'
 
 const NAV = [
   { path: '/',           label: 'Start',      icon: Home,          color: '#7c72f5', exact: true },
@@ -10,11 +10,22 @@ const NAV = [
   { path: '/planering',  label: 'Livskarta',  icon: Map,           color: '#f97316' },
 ]
 
-export default function MobileNav() {
+export default function MobileNav({ onMenuOpen }) {
   const location = useLocation()
 
   return (
-    <nav className="flex lg:hidden shrink-0 items-center border-t border-border bg-surface pb-safe">
+    <nav className="flex lg:hidden shrink-0 items-stretch border-t border-border bg-surface pb-safe">
+      {/* Hamburgermeny — öppnar sidebar-drawer */}
+      <button
+        onClick={onMenuOpen}
+        className="flex flex-col items-center justify-center gap-1 px-3 min-h-[52px] text-dim hover:text-muted transition-colors"
+        aria-label="Öppna meny"
+      >
+        <Menu size={21} strokeWidth={1.6} />
+        <span className="font-mono text-[10px] leading-none">Meny</span>
+      </button>
+
+      {/* Nav-länkar */}
       {NAV.map(item => {
         const isActive = item.exact
           ? location.pathname === item.path
