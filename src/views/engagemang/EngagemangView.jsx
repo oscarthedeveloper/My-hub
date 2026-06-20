@@ -96,8 +96,8 @@ function OrgsTab({ store }) {
             <p className="font-display text-sm font-semibold text-text">Ny organisation</p>
             <button type="button" onClick={() => setShowForm(false)} className="text-muted hover:text-text"><X size={15} /></button>
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="sm:col-span-2">
               <Field label="Namn" value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} required />
             </div>
             <Field label="Förkortning" value={form.short} onChange={v => setForm(f => ({ ...f, short: v }))} placeholder="MUF" />
@@ -240,8 +240,8 @@ function OrgCard({ org, store }) {
 
           {/* Sub-navigation */}
           {!editing && (
-            <div className="flex items-center justify-between border-b border-border px-5">
-              <div className="flex gap-0">
+            <div className="flex items-center justify-between border-b border-border px-5 overflow-x-auto">
+              <div className="flex gap-0 shrink-0">
                 {SUB_TABS.map(({ id, label, icon: Icon, badge }) => (
                   <button
                     key={id}
@@ -279,8 +279,8 @@ function OrgCard({ org, store }) {
             {editing ? (
               <form onSubmit={handleUpdate} className="space-y-3">
                 <p className="font-mono text-[11px] text-muted mb-2">// Redigera organisation</p>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="col-span-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
                     <Field label="Namn" value={editForm.name} onChange={v => setEditForm(f => ({ ...f, name: v }))} required />
                   </div>
                   <Field label="Förkortning" value={editForm.short} onChange={v => setEditForm(f => ({ ...f, short: v }))} />
@@ -664,7 +664,7 @@ function PlatformsTab({ store }) {
         </form>
       )}
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {store.platforms.map(p => (
           <PlatformCard key={p.id} platform={p} store={store} />
         ))}

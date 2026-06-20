@@ -400,7 +400,7 @@ function EpochPanel({ epoch, cats, subEpochs, editForm, setEditForm, onUpdate, o
   function submitEditSub(e) { e.preventDefault(); onUpdateSub(editSubId, editSubFrm); setEditSubId(null); setEditSubFrm(null) }
 
   return (
-    <div className="flex h-full w-80 shrink-0 flex-col overflow-hidden border-l border-border bg-surface">
+    <div className="flex h-full w-full sm:w-80 shrink-0 flex-col overflow-hidden border-l border-border bg-surface">
 
       {/* Header */}
       <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
@@ -572,7 +572,7 @@ function CategoryManager({ cats, onAdd, onUpdate, onRemove, epochsCount, onClose
 
   return (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-text/10 backdrop-blur-sm">
-      <div className="w-[420px] rounded-2xl border border-border bg-surface p-6 shadow-xl">
+      <div className="w-full max-w-[420px] mx-4 rounded-2xl border border-border bg-surface p-6 shadow-xl">
         <div className="mb-5 flex items-center justify-between">
           <h3 className="font-display text-[13px] font-bold text-text">Hantera kategorier</h3>
           <button onClick={onClose} className="text-dim transition hover:text-muted"><X size={14} /></button>
@@ -644,7 +644,7 @@ function CategoryManager({ cats, onAdd, onUpdate, onRemove, epochsCount, onClose
 function EpochModal({ form, setForm, cats, onSubmit, onClose }) {
   return (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-text/10 backdrop-blur-sm">
-      <div className="w-[400px] rounded-2xl border border-border bg-surface p-6 shadow-xl">
+      <div className="w-full max-w-[400px] mx-4 rounded-2xl border border-border bg-surface p-6 shadow-xl">
         <div className="mb-5 flex items-center justify-between">
           <h3 className="font-display text-[13px] font-bold text-text">Ny epok</h3>
           <button onClick={onClose} className="text-dim transition hover:text-muted"><X size={14} /></button>

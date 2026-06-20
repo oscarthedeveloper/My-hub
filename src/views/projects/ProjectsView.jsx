@@ -81,7 +81,7 @@ export default function ProjectsView() {
       {showForm && (
         <form onSubmit={handleAdd} className="mb-6 rounded-xl border border-border bg-surface p-5 space-y-3">
           <p className="font-display text-sm font-semibold text-text">Initiera projekt</p>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <Field label="namn" value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} required />
             <Field label="beskrivning" value={form.description} onChange={v => setForm(f => ({ ...f, description: v }))} />
             <Select label="status" value={form.status} onChange={v => setForm(f => ({ ...f, status: v }))}
@@ -100,7 +100,7 @@ export default function ProjectsView() {
       )}
 
       {/* ── Project grid ── */}
-      <div ref={gridRef} className="grid grid-cols-2 gap-3 xl:grid-cols-3">
+      <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 gap-3 xl:grid-cols-3">
         {projects.map(project => {
           const pt = todos.filter(t => t.projectId === project.id)
           return (

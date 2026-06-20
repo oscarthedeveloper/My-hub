@@ -90,7 +90,7 @@ export default function Dashboard() {
               className="flex-1 w-full resize-none rounded-lg border border-border bg-surface2 px-3 py-2.5 font-sans text-sm text-text placeholder-dim outline-none focus:border-accent/40 focus:ring-1 focus:ring-accent/15 transition-all"
               placeholder="Vad vill du uppnå idag?&#10;&#10;_"
             />
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <MiniStat label="aktiva projekt" value={activeProjects.length} color="#7c72f5" />
               <MiniStat label="öppna uppgifter" value={openTodos} color={openTodos > 0 ? '#d97706' : '#059669'} />
               <MiniStat label="deploy: ok" value={successDeploys} color="#059669" />

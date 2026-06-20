@@ -81,7 +81,7 @@ export default function ProjectDetail() {
     <div ref={ref} className="min-h-screen">
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
-      <div className="border-b border-border bg-surface px-8 py-6">
+      <div className="border-b border-border bg-surface px-4 md:px-8 py-4 md:py-6">
         <button
           onClick={() => navigate('/projekt')}
           className="mb-4 flex items-center gap-1.5 font-mono text-[11px] text-muted transition-colors hover:text-text"
@@ -89,7 +89,7 @@ export default function ProjectDetail() {
           <ArrowLeft size={12} /> cd ../projekt
         </button>
 
-        <div className="flex items-start justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-6">
           <div className="flex-1 min-w-0">
             {/* Project name in Syne */}
             <div className="flex items-center gap-3">
@@ -269,7 +269,7 @@ function ProjectVitals({ project, onUpdate }) {
       {/* Edit form (when open) */}
       {open && (
         <form onSubmit={handleSave} className="px-5 pb-5 pt-4">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <VField k="name"           v={form.name}          set={v => setForm(f => ({ ...f, name: v }))}          req />
             <VField k="description"    v={form.description}   set={v => setForm(f => ({ ...f, description: v }))}   />
             <VSelect k="status"        v={form.status}        set={v => setForm(f => ({ ...f, status: v }))}

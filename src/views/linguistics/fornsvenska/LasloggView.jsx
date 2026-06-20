@@ -360,14 +360,14 @@ function EntryForm({ form, setForm, onSubmit, onCancel, title, showRating = fals
       </div>
 
       {/* Rad 2: Typ, Svårighetsgrad, Utgåva/Handskrift */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <Select label="Typ" value={form.type} onChange={v => setForm(f => ({ ...f, type: v }))} options={TEXT_TYPES} />
         <Select label="Svårighetsgrad" value={form.difficulty} onChange={v => setForm(f => ({ ...f, difficulty: v }))} options={DIFFICULTIES} />
         <Field label="Utgåva / handskrift" value={form.edition} onChange={v => setForm(f => ({ ...f, edition: v }))} placeholder="t.ex. AM 132 fol." />
       </div>
 
       {/* Rad 3: Sidor, Startdatum, Digital länk */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <Field label="Antal sidor / avsnitt" value={form.totalPages} onChange={v => setForm(f => ({ ...f, totalPages: v }))} placeholder="0" />
         <Field label="Startdatum" value={form.startDate} onChange={v => setForm(f => ({ ...f, startDate: v }))} type="date" />
         <Field label="Digital länk" value={form.url} onChange={v => setForm(f => ({ ...f, url: v }))} placeholder="https://…" />

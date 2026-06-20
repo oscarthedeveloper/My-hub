@@ -104,7 +104,7 @@ export default function OvningarView() {
             <p className="font-display text-sm font-semibold text-text">Nytt övningspass</p>
             <button type="button" onClick={() => setShowForm(false)} className="text-muted hover:text-text"><X size={15} /></button>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
               <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted">Sektion</label>
               <select className="w-full rounded-lg border border-border bg-surface2 px-3 py-2 font-mono text-sm text-text outline-none focus:border-accent/40"

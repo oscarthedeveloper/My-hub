@@ -96,12 +96,13 @@ export default function LanguageLayout() {
       </div>
 
       {/* ── Secondary nav ── */}
-      <div className="mb-8 flex gap-0.5 border-b border-border">
+      <div className="mb-8 flex gap-0.5 border-b border-border overflow-x-auto">
         {config.tabs.map(tab => (
           <NavLink
             key={tab.id}
             to={`/lingvistik/${lang}/${tab.id}`}
             className={({ isActive }) => [
+              'shrink-0',
               'relative px-4 py-2.5 font-mono text-[12px] transition-all duration-150',
               isActive
                 ? 'text-text'

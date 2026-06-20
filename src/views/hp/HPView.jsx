@@ -132,7 +132,7 @@ export default function HPView() {
 
       {/* ── Countdown + datumväljare ── */}
       <div className="mb-7 mt-5 rounded-xl border border-border bg-surface px-5 py-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-baseline gap-3">
             {days !== null ? (
               <>
@@ -218,7 +218,7 @@ export default function HPView() {
 
       {/* ── Sessionslogg ── */}
       <div>
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-mono text-[10px] uppercase tracking-widest text-dim mr-1">// log</p>
             {/* Filter chips */}
@@ -479,7 +479,7 @@ const FORM_YEARS = Array.from({ length: 12 }, (_, i) => new Date().getFullYear()
 
 function SessionFormFields({ form, setForm }) {
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
 
       {/* Rad 1: Delprov, År, Termin */}
       <div>
@@ -622,7 +622,8 @@ function ExamGrid({ hpExams, sessions, onAdd, onToggle, onRemove }) {
           <p className="font-mono text-xs text-muted">// Lägg till ett HP-tillfälle ovan</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-border bg-surface overflow-hidden">
+        <div className="rounded-xl border border-border bg-surface overflow-x-auto">
+          <div className="min-w-[640px]">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-border">
@@ -756,6 +757,7 @@ function ExamGrid({ hpExams, sessions, onAdd, onToggle, onRemove }) {
             </div>
             <span className="ml-auto font-mono text-[9px] text-dim">V = Verbalt · K = Kvantitativt</span>
           </div>
+        </div>
         </div>
       )}
 

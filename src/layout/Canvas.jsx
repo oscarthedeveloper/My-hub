@@ -47,7 +47,7 @@ export default function Canvas() {
         </div>
       ) : (
         /* ── Övriga vyer: Lenis-scrollat innehåll ── */
-        <div ref={canvasRef} className="h-full overflow-y-auto md:overflow-hidden">
+        <div ref={canvasRef} className="h-full overflow-y-auto lg:overflow-hidden">
           <div ref={contentRef} className="min-h-full">
             <Routes>
               <Route path="/" element={<Dashboard />} />
