@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BookOpen, Hash, FileText, BookMarked, HardDriveDownload, Dumbbell } from 'lucide-react'
+import { BookOpen, Hash, FileText, BookMarked, HardDriveDownload, Dumbbell, RefreshCw } from 'lucide-react'
 import { useLinguisticsStore } from '@/store'
 import { useFadeIn, useStaggerIn } from '@/hooks/useGSAP'
 import { syncWordsToFile } from '@/lib/wordExport'
+import { pullAllCollections } from '@/lib/sync'
+import { PREFIX } from '@/lib/storage'
 
 const LANGS = [
   {
@@ -53,7 +55,21 @@ export default function LinguisticsHome() {
   const totalWords = words.length
   const totalNotes = notes.length + grammarEntries.length
 
-  const [syncStatus, setSyncStatus] = useState(null) // null | 'syncing' | { added, updated, kept, total } | { error } | { cancelled } | { fallback }
+  const [syncStatus,   setSyncStatus]   = useState(null)
+  const [pullStatus,   setPullStatus]   = useState(null) // null | 'pulling' | 'done' | 'empty' | 'error'
+
+  async function handlePull() {
+    setPullStatus('pulling')
+    try {
+      const ok = await pullAllCollections(PREFIX)
+      setPullStatus(ok ? 'done' : 'empty')
+      if (ok) setTimeout(() => window.location.reload(), 600) // reload stores from fresh localStorage
+      else    setTimeout(() => setPullStatus(null), 3000)
+    } catch {
+      setPullStatus('error')
+      setTimeout(() => setPullStatus(null), 3000)
+    }
+  }
 
   async function handleSync() {
     setSyncStatus('syncing')
@@ -77,33 +93,55 @@ export default function LinguisticsHome() {
         </div>
 
         {/* ── Åtgärder ── */}
-        <div className="flex flex-col gap-2 md:items-end">
-          <button
-            onClick={() => navigate('/lingvistik/trana')}
-            disabled={totalWords === 0}
-            className="flex items-center justify-center gap-2 rounded-xl border border-accent/30 bg-accent/8 px-3 py-2.5 font-mono text-[12px] text-accent transition-all hover:bg-accent/15 disabled:opacity-40 md:justify-start"
-          >
-            <Dumbbell size={13} /> Träna ordförråd
-          </button>
-          <button
-            onClick={handleSync}
-            disabled={syncStatus === 'syncing' || totalWords === 0}
-            title="Slå ihop och spara alla ord i en lokal JSON-fil"
-            className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5 font-mono text-[12px] text-muted transition-all hover:border-border2 hover:text-text disabled:opacity-40 md:justify-start"
-          >
-            <HardDriveDownload size={13} />
-            {syncStatus === 'syncing' ? 'Synkar…' : 'Synka ordbok till fil'}
-          </button>
-          {syncStatus && syncStatus !== 'syncing' && (
-            <p className="font-mono text-[11px] text-center md:text-right" style={{
-              color: syncStatus.error ? '#e11d48'
-                   : syncStatus.cancelled ? 'rgb(var(--color-dim))'
-                   : '#34d399'
+        <div className="flex flex-col items-start gap-1.5 md:items-end">
+          <div className="flex items-center gap-1.5">
+            {/* Träna */}
+            <button
+              onClick={() => navigate('/lingvistik/trana')}
+              disabled={totalWords === 0}
+              title="Träna ordförråd"
+              className="flex items-center gap-1.5 rounded-lg border border-accent/30 bg-accent/8 px-2.5 py-1.5 font-mono text-[11px] text-accent transition-all hover:bg-accent/15 disabled:opacity-40"
+            >
+              <Dumbbell size={12} /> Träna
+            </button>
+
+            {/* Hämta från Supabase */}
+            <button
+              onClick={handlePull}
+              disabled={pullStatus === 'pulling'}
+              title="Hämta senaste data från Supabase"
+              className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 font-mono text-[11px] text-muted transition-all hover:border-border2 hover:text-text disabled:opacity-40"
+            >
+              <RefreshCw size={12} className={pullStatus === 'pulling' ? 'animate-spin' : ''} />
+              {pullStatus === 'pulling' ? 'Hämtar…' : pullStatus === 'done' ? '✓ Klar' : 'Synkronisera'}
+            </button>
+
+            {/* Spara till fil */}
+            <button
+              onClick={handleSync}
+              disabled={syncStatus === 'syncing' || totalWords === 0}
+              title="Slå ihop och spara alla ord i en lokal JSON-fil"
+              className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 font-mono text-[11px] text-muted transition-all hover:border-border2 hover:text-text disabled:opacity-40"
+            >
+              <HardDriveDownload size={12} />
+              {syncStatus === 'syncing' ? 'Sparar…' : 'Spara till fil'}
+            </button>
+          </div>
+
+          {/* Statusrad */}
+          {(syncStatus && syncStatus !== 'syncing') && (
+            <p className="font-mono text-[10px]" style={{
+              color: syncStatus.error ? '#e11d48' : syncStatus.cancelled ? 'rgb(var(--color-dim))' : '#34d399'
             }}>
-              {syncStatus.error    ? `// fel: ${syncStatus.error}`
+              {syncStatus.error      ? `// fel: ${syncStatus.error}`
                : syncStatus.cancelled ? '// avbruten'
-               : syncStatus.fallback  ? `// nedladdad (${syncStatus.total} ord)`
+               : syncStatus.fallback  ? `// nedladdad · ${syncStatus.total} ord`
                : `// +${syncStatus.added} nya · ${syncStatus.updated} uppdaterade · ${syncStatus.total} totalt`}
+            </p>
+          )}
+          {(pullStatus === 'empty' || pullStatus === 'error') && (
+            <p className="font-mono text-[10px] text-dim">
+              {pullStatus === 'empty' ? '// ingen data i Supabase' : '// fel vid hämtning'}
             </p>
           )}
         </div>
