@@ -6,8 +6,7 @@ import { storage, PREFIX } from '@/lib/storage'
 // ─── LoginView ────────────────────────────────────────────────────────────────
 
 export default function LoginView() {
-  const [mode,   setMode]   = useState('login')   // 'login' | 'register'
-  const [email,  setEmail]  = useState('')
+  const [username, setUsername] = useState('')
   const [pass,   setPass]   = useState('')
   const [error,  setError]  = useState(null)
   const [busy,   setBusy]   = useState(false)
@@ -19,16 +18,9 @@ export default function LoginView() {
     setError(null)
     setStatus(null)
 
-    try {
-      if (mode === 'register') {
-        const { error } = await supabase.auth.signUp({ email, password: pass })
-        if (error) throw error
-        setStatus('Konto skapat! Kontrollera din e-post för bekräftelse, logga sedan in.')
-        setMode('login')
-        return
-      }
+    const email = `${username.trim().toLowerCase()}@hub.local`
 
-      // ── Login ──
+    try {
       const { error } = await supabase.auth.signInWithPassword({ email, password: pass })
       if (error) throw error
 
@@ -85,17 +77,15 @@ export default function LoginView() {
 
         {/* Formulär */}
         <div className="rounded-2xl border border-border bg-surface p-7 shadow-sm">
-          <p className="mb-5 font-mono text-[11px] font-medium text-muted">
-            {mode === 'login' ? '// Logga in' : '// Skapa konto'}
-          </p>
+          <p className="mb-5 font-mono text-[11px] font-medium text-muted">// Logga in</p>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <Field
-              label="E-postadress"
-              type="email"
-              value={email}
-              onChange={setEmail}
-              placeholder="oscar@example.com"
+              label="Användarnamn"
+              type="text"
+              value={username}
+              onChange={setUsername}
+              placeholder=""
               disabled={busy}
               required
             />
@@ -126,20 +116,9 @@ export default function LoginView() {
               disabled={busy}
               className="w-full rounded-xl bg-accent/10 px-4 py-2.5 font-mono text-[12px] font-medium text-accent ring-1 ring-accent/25 transition-all hover:bg-accent/20 disabled:opacity-40"
             >
-              {busy
-                ? mode === 'login' ? 'Loggar in…' : 'Skapar konto…'
-                : mode === 'login' ? 'Logga in' : 'Skapa konto'}
+              {busy ? 'Loggar in…' : 'Logga in'}
             </button>
           </form>
-
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => { setMode(m => m === 'login' ? 'register' : 'login'); setError(null); setStatus(null) }}
-              className="font-mono text-[11px] text-dim transition-colors hover:text-muted"
-            >
-              {mode === 'login' ? 'Inget konto? Registrera dig' : 'Har du ett konto? Logga in'}
-            </button>
-          </div>
         </div>
 
       </div>
