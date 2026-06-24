@@ -35,6 +35,25 @@ function roundToSlot(min, slot = 15) {
   return Math.round(min / slot) * slot
 }
 
+// Fördelar överlappande event i kolumner för samma dag
+function layoutEvents(dayEvents) {
+  if (!dayEvents.length) return []
+  const sorted = [...dayEvents].sort(
+    (a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime)
+  )
+  const colEnds = []
+  const placed = sorted.map(ev => {
+    const start = timeToMinutes(ev.startTime)
+    const end   = timeToMinutes(ev.endTime)
+    let col = colEnds.findIndex(e => start >= e)
+    if (col === -1) col = colEnds.length
+    colEnds[col] = end
+    return { ev, col }
+  })
+  const totalCols = colEnds.length
+  return placed.map(({ ev, col }) => ({ ev, col, totalCols }))
+}
+
 // ─── ColorPicker ──────────────────────────────────────────────────────────────
 
 function ColorPicker({ value, onChange }) {
@@ -166,7 +185,7 @@ function CategoryManager({ onClose }) {
 
 // ─── EventBlock ───────────────────────────────────────────────────────────────
 
-function EventBlock({ event, category, onClick }) {
+function EventBlock({ event, category, onClick, col = 0, totalCols = 1 }) {
   const startMin  = timeToMinutes(event.startTime)
   const endMin    = timeToMinutes(event.endTime)
   const gridStart = GRID_START * 60
@@ -176,14 +195,20 @@ function EventBlock({ event, category, onClick }) {
   const color     = category?.color ?? '#7c72f5'
   const isShort   = height < 36
 
+  const GAP       = 2
+  const widthPct  = 100 / totalCols
+  const leftPct   = col * widthPct
+
   return (
     <div
       data-event="true"
       onClick={e => { e.stopPropagation(); onClick() }}
-      className="absolute left-0.5 right-0.5 cursor-pointer overflow-hidden rounded transition-opacity hover:opacity-80"
+      className="absolute cursor-pointer overflow-hidden rounded transition-opacity hover:opacity-80"
       style={{
         top:             `${top}px`,
         height:          `${height}px`,
+        left:            `calc(${leftPct}% + ${GAP}px)`,
+        width:           `calc(${widthPct}% - ${GAP * 2}px)`,
         backgroundColor: `${color}22`,
         borderLeft:      `3px solid ${color}`,
         zIndex:          2,
@@ -232,7 +257,7 @@ function WeekCalendar({ events, categories, onAddEvent, onEditEvent, mobileDay, 
         <div
           key={h}
           className="absolute right-1 font-mono text-[9px] leading-none text-dim"
-          style={{ top: (h - GRID_START) * PX_PER_HOUR - 5 }}
+          style={{ top: (h - GRID_START) * PX_PER_HOUR + 2 }}
         >
           {String(h).padStart(2, '0')}
         </div>
@@ -241,13 +266,10 @@ function WeekCalendar({ events, categories, onAddEvent, onEditEvent, mobileDay, 
   )
 
   // En dagkolumn — återanvänds i båda layouts
-  const DayColumn = ({ dayIdx, fullWidth = false }) => (
+  const DayColumn = ({ dayIdx }) => (
     <div
-      className={[
-        'relative cursor-pointer border-l border-border',
-        fullWidth ? 'flex-1' : '',
-      ].join(' ')}
-      style={{ minWidth: fullWidth ? undefined : 60 }}
+      className="relative flex-1 cursor-pointer border-l border-border"
+      style={{ minWidth: 60 }}
       onClick={e => handleColumnClick(e, dayIdx)}
     >
       {HOURS.map(h => (
@@ -264,14 +286,15 @@ function WeekCalendar({ events, categories, onAddEvent, onEditEvent, mobileDay, 
           style={{ top: (h - GRID_START) * PX_PER_HOUR + PX_PER_HOUR / 2 }}
         />
       ))}
-      {events
-        .filter(ev => ev.day === dayIdx)
-        .map(ev => (
+      {layoutEvents(events.filter(ev => ev.day === dayIdx))
+        .map(({ ev, col, totalCols }) => (
           <EventBlock
             key={ev.id}
             event={ev}
             category={getCat(ev.categoryId)}
             onClick={() => onEditEvent(ev)}
+            col={col}
+            totalCols={totalCols}
           />
         ))}
     </div>
@@ -324,7 +347,7 @@ function WeekCalendar({ events, categories, onAddEvent, onEditEvent, mobileDay, 
         {/* Enskild dagkolumn */}
         <div className="flex" style={{ height: totalHeight }}>
           <TimeColumn />
-          <DayColumn dayIdx={mobileDay} fullWidth />
+          <DayColumn dayIdx={mobileDay} />
         </div>
       </div>
 
