@@ -125,6 +125,15 @@ export const COLLECTIONS = {
   EPOCHS:          'epochs',
   EPOCH_CATS:      'epochCategories',
   EPOCH_SUBS:      'epochSubs',
+  DOC_CATEGORIES:       'docCategories',
+  READING_CATEGORIES:   'readingCategories',
+  LANGUAGES:            'languages',
+  TODOS:                'todos',
+  VARDAGS_CATEGORIES:   'vardagsCategories',
+  VARDAGS_EVENTS:       'vardagsEvents',
+  VARDAGS_SOMEDAY:      'vardagsSomeday',
+  ORG_CONTACTS:         'orgContacts',
+  ORG_LOGS:             'orgLogs',
 }
 
 export { PREFIX }

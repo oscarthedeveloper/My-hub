@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import {
   Code2, BookOpen, GraduationCap, Users,
   Globe, Activity, GitBranch, ArrowUpRight,
-  Layers, Hash,
+  Layers, Hash, Plus, Check, Trash2, X,
 } from 'lucide-react'
-import { useProjectStore, useLinguisticsStore, useHPStore, useEngagemangStore } from '@/store'
+import { useProjectStore, useLinguisticsStore, useHPStore, useEngagemangStore, useTodoStore } from '@/store'
 import { useStaggerIn } from '@/hooks/useGSAP'
 
 // ─── Live clock ───────────────────────────────────────────────────────────────
@@ -21,6 +21,107 @@ function useClock() {
 
 function pad(n) { return String(n).padStart(2, '0') }
 
+// ─── Todo priority column ─────────────────────────────────────────────────────
+
+const PRIO_CONFIG = [
+  { priority: 1, label: 'Prio 1', color: '#e11d48' },
+  { priority: 2, label: 'Prio 2', color: '#d97706' },
+  { priority: 3, label: 'Prio 3', color: '#64748b' },
+]
+
+function PrioColumn({ priority, label, color, todos, onAdd, onToggle, onRemove }) {
+  const [input, setInput] = useState('')
+
+  function handleAdd(e) {
+    e.preventDefault()
+    if (!input.trim()) return
+    onAdd(input)
+    setInput('')
+  }
+
+  const open = todos.filter(t => !t.done)
+  const done = todos.filter(t => t.done)
+
+  return (
+    <div className="flex flex-col gap-2 min-h-0">
+      {/* Column header */}
+      <div className="flex items-center gap-1.5">
+        <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+        <span className="font-mono text-[11px] font-medium" style={{ color }}>{label}</span>
+        {open.length > 0 && (
+          <span
+            className="ml-auto font-mono text-[10px] rounded px-1.5 py-0.5"
+            style={{ backgroundColor: color + '18', color }}
+          >
+            {open.length}
+          </span>
+        )}
+      </div>
+
+      {/* Todo list */}
+      <div className="flex flex-col gap-1 flex-1 overflow-y-auto">
+        {open.map(todo => (
+          <div key={todo.id} className="group flex items-start gap-1.5 rounded-lg border border-border bg-surface2 px-2 py-1.5">
+            <button
+              onClick={() => onToggle(todo.id)}
+              className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded border border-border hover:border-[color:var(--c)] transition-colors"
+              style={{ '--c': color }}
+            />
+            <span className="flex-1 font-mono text-[11px] text-text leading-snug break-words min-w-0">{todo.text}</span>
+            <button
+              onClick={() => onRemove(todo.id)}
+              className="shrink-0 rounded p-0.5 opacity-0 group-hover:opacity-100 text-dim hover:text-rose transition-all"
+            >
+              <X size={10} />
+            </button>
+          </div>
+        ))}
+
+        {/* Done todos */}
+        {done.map(todo => (
+          <div key={todo.id} className="group flex items-start gap-1.5 rounded-lg px-2 py-1.5 opacity-40">
+            <button
+              onClick={() => onToggle(todo.id)}
+              className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded flex items-center justify-center"
+              style={{ backgroundColor: color + '30', color }}
+            >
+              <Check size={8} />
+            </button>
+            <span className="flex-1 font-mono text-[11px] text-muted line-through leading-snug break-words min-w-0">{todo.text}</span>
+            <button
+              onClick={() => onRemove(todo.id)}
+              className="shrink-0 rounded p-0.5 opacity-0 group-hover:opacity-100 text-dim hover:text-rose transition-all"
+            >
+              <X size={10} />
+            </button>
+          </div>
+        ))}
+
+        {todos.length === 0 && (
+          <p className="font-mono text-[10px] text-dim px-1">// tom</p>
+        )}
+      </div>
+
+      {/* Add input */}
+      <form onSubmit={handleAdd} className="flex gap-1">
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="Lägg till…"
+          className="flex-1 min-w-0 rounded-lg border border-border bg-surface2 px-2 py-1 font-mono text-[11px] text-text placeholder-dim outline-none focus:border-border2 transition-all"
+        />
+        <button
+          type="submit"
+          disabled={!input.trim()}
+          className="shrink-0 rounded-lg border border-border px-1.5 py-1 text-dim hover:text-text hover:border-border2 transition-all disabled:opacity-30"
+        >
+          <Plus size={11} />
+        </button>
+      </form>
+    </div>
+  )
+}
+
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
@@ -28,42 +129,42 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const now = useClock()
 
-  const { projects, todos } = useProjectStore()
-  const { words, grammarEntries } = useLinguisticsStore()
-  const { examDate, daysUntilExam } = useHPStore()
-  const { organizations, platforms } = useEngagemangStore()
+  const { projects, todos: projectTodos } = useProjectStore()
+  const { words, grammarEntries }         = useLinguisticsStore()
+  const { examDate, daysUntilExam }       = useHPStore()
+  const { organizations, platforms }      = useEngagemangStore()
+  const { todos, addTodo, toggleTodo, removeTodo } = useTodoStore()
 
   const days            = daysUntilExam()
   const activeProjects  = projects.filter(p => p.status === 'active')
-  const openTodos       = todos.filter(t => t.status !== 'done').length
+  const openTodos       = projectTodos.filter(t => t.status !== 'done').length
   const successDeploys  = projects.filter(p => p.deployStatus === 'success').length
 
   const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
   const dateStr = now.toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' })
+
+  const openGlobalTodos = todos.filter(t => !t.done).length
 
   return (
     <div className="min-h-screen p-4 md:p-8">
 
       {/* ── System status bar ── */}
       <div className="mb-6 flex items-center gap-0 rounded-xl border border-border bg-surface overflow-x-auto">
-        {/* Online indicator */}
         <div className="flex items-center gap-2 border-r border-border px-4 py-3 shrink-0">
           <span className="h-1.5 w-1.5 rounded-full bg-green pulse-dot" />
           <span className="font-mono text-[11px] text-green">online</span>
         </div>
-        {/* Date */}
         <div className="border-r border-border px-4 py-3 shrink-0">
           <span className="font-mono text-[11px] text-muted">{dateStr}</span>
         </div>
-        {/* Live clock */}
         <div className="border-r border-border px-4 py-3 shrink-0">
           <span className="font-mono text-[11px] text-text tabular-nums">{timeStr}</span>
         </div>
-        {/* Metrics */}
         <div className="flex flex-1 items-center gap-0 overflow-hidden">
-          <StatusPill label="ord" value={words.length}          />
+          <StatusPill label="ord" value={words.length} />
           <StatusPill label="projekt" value={activeProjects.length} />
-          <StatusPill label="uppgifter" value={openTodos}           color={openTodos > 0 ? '#d97706' : undefined} />
+          <StatusPill label="uppgifter" value={openTodos} color={openTodos > 0 ? '#d97706' : undefined} />
+          <StatusPill label="att göra" value={openGlobalTodos} color={openGlobalTodos > 0 ? '#e11d48' : undefined} />
           {days !== null && (
             <StatusPill label="dagar till HP" value={days} color={days < 30 ? '#e11d48' : days < 90 ? '#d97706' : undefined} />
           )}
@@ -77,24 +178,24 @@ export default function Dashboard() {
       </div>
 
       {/* ── Bento grid ── */}
-      <div
-        ref={gridRef}
-        className="bento-grid grid grid-cols-1 md:grid-cols-4 gap-3"
-      >
+      <div ref={gridRef} className="bento-grid grid grid-cols-1 md:grid-cols-4 gap-3">
 
-        {/* 1. Fokus — 2×2 */}
+        {/* 1. Att göra — 2×2 */}
         <Card className="col-span-1 md:col-span-2 md:row-span-2" accent="#7c72f5">
-          <CardHeader label="fokus.txt" accent="#7c72f5" icon={Layers} />
-          <div className="mt-3 flex flex-col gap-3 h-[calc(100%-2.5rem)]">
-            <textarea
-              className="flex-1 w-full resize-none rounded-lg border border-border bg-surface2 px-3 py-2.5 font-sans text-sm text-text placeholder-dim outline-none focus:border-accent/40 focus:ring-1 focus:ring-accent/15 transition-all"
-              placeholder="Vad vill du uppnå idag?&#10;&#10;_"
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <MiniStat label="aktiva projekt" value={activeProjects.length} color="#7c72f5" />
-              <MiniStat label="öppna uppgifter" value={openTodos} color={openTodos > 0 ? '#d97706' : '#059669'} />
-              <MiniStat label="deploy: ok" value={successDeploys} color="#059669" />
-            </div>
+          <CardHeader label="att-göra.txt" accent="#7c72f5" icon={Layers} />
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 min-h-0" style={{ height: 'calc(100% - 2.5rem)' }}>
+            {PRIO_CONFIG.map(({ priority, label, color }) => (
+              <PrioColumn
+                key={priority}
+                priority={priority}
+                label={label}
+                color={color}
+                todos={todos.filter(t => t.priority === priority)}
+                onAdd={(text) => addTodo(priority, text)}
+                onToggle={toggleTodo}
+                onRemove={removeTodo}
+              />
+            ))}
           </div>
         </Card>
 
@@ -228,11 +329,8 @@ function Card({ children, className = '', accent = '#7c72f5', onClick }) {
         onClick ? 'cursor-pointer hover:border-border2 hover:shadow-sm' : '',
         className,
       ].join(' ')}
-      style={{
-        '--card-accent': accent,
-      }}
+      style={{ '--card-accent': accent }}
     >
-      {/* Subtle corner glow on hover */}
       {onClick && (
         <div
           className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
@@ -257,15 +355,6 @@ function CardHeader({ label, icon: Icon, accent }) {
         <span className="font-mono text-[11px] text-muted">{label}</span>
       </div>
       <ArrowUpRight size={12} className="text-dim opacity-0 transition-opacity group-hover:opacity-100" />
-    </div>
-  )
-}
-
-function MiniStat({ label, value, color = '#8080a0' }) {
-  return (
-    <div className="rounded-lg border border-border bg-surface px-3 py-2">
-      <p className="font-mono text-xl font-medium leading-none" style={{ color }}>{value}</p>
-      <p className="mt-1 font-mono text-[10px] text-muted">{label}</p>
     </div>
   )
 }

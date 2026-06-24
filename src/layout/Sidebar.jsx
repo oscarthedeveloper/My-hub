@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { Sun, Moon, LogOut, X } from 'lucide-react'
+import { Sun, Moon, LogOut, X, BookMarked } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import {
   useThemeStore,
@@ -9,6 +9,8 @@ import {
   useHPStore,
   useEngagemangStore,
   usePlaneringsStore,
+  useLasningStore,
+  useVardagsStore,
 } from '@/store'
 
 // ─── Live clock ───────────────────────────────────────────────────────────────
@@ -54,6 +56,8 @@ function SidebarContent({ onNavClick }) {
   const { daysUntilExam }            = useHPStore()
   const { organizations, platforms } = useEngagemangStore()
   const { epochs }                   = usePlaneringsStore()
+  const { categories: readingCats }  = useLasningStore()
+  const { events: vardagsEvents }    = useVardagsStore()
 
   const activeProjects = projects.filter(p => p.status === 'active').length
   const openTodos      = todos.filter(t => t.status !== 'done').length
@@ -94,11 +98,28 @@ function SidebarContent({ onNavClick }) {
       statAlert: days !== null && days < 60,
     },
     {
+      id: 'lasning',
+      label: 'Läsning',
+      path: '/lasning',
+      color: '#a78bfa',
+      stat: (() => {
+        const n = readingCats.flatMap(c => c.works ?? []).filter(w => w.status === 'läser').length
+        return n > 0 ? `${n} läser` : null
+      })(),
+    },
+    {
       id: 'engagemang',
       label: 'Engagemang',
       path: '/engagemang',
       color: '#e11d48',
       stat: engCount > 0 ? `${engCount}` : null,
+    },
+    {
+      id: 'vardagskarta',
+      label: 'Vardagskarta',
+      path: '/vardagskarta',
+      color: '#f472b6',
+      stat: vardagsEvents.length > 0 ? `${vardagsEvents.length} event` : null,
     },
     {
       id: 'planering',

@@ -1,23 +1,29 @@
 import { useEffect, useRef } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom'
 import { gsap } from 'gsap'
 import useLenis from '@/hooks/useLenis'
+import { useLinguisticsStore } from '@/store'
 import Dashboard from '@/views/Dashboard'
 import ProjectsView from '@/views/projects/ProjectsView'
 import ProjectDetail from '@/views/projects/ProjectDetail'
 import LinguisticsHome from '@/views/linguistics/LinguisticsHome'
 import TranaView from '@/views/linguistics/TranaView'
 import LanguageLayout from '@/views/linguistics/LanguageLayout'
-import WordsView from '@/views/linguistics/shared/WordsView'
-import GrammarView from '@/views/linguistics/shared/GrammarView'
-import NotesView from '@/views/linguistics/shared/NotesView'
-import FonologiView from '@/views/linguistics/fornsvenska/FonologiView'
-import LasloggView from '@/views/linguistics/fornsvenska/LasloggView'
-import OvningarView from '@/views/linguistics/svenska/OvningarView'
-import KonjugationerView from '@/views/linguistics/italienska/KonjugationerView'
+import TabRenderer from '@/views/linguistics/TabRenderer'
 import HPView from '@/views/hp/HPView'
+import LasningView from '@/views/lasning/LasningView'
 import EngagemangView from '@/views/engagemang/EngagemangView'
+import VardagskarteView from '@/views/vardagskarta/VardagskarteView'
 import PlaneringsView from '@/views/planering/PlaneringsView'
+
+// Redirects to the first tab of a language (dynamic)
+function LangIndexRedirect() {
+  const { lang } = useParams()
+  const { languages } = useLinguisticsStore()
+  const language = languages.find(l => l.id === lang)
+  const first = language?.tabs[0]?.id ?? 'ordforrad'
+  return <Navigate to={first} replace />
+}
 
 export default function Canvas() {
   const location   = useLocation()
@@ -58,19 +64,15 @@ export default function Canvas() {
               <Route path="/lingvistik" element={<LinguisticsHome />} />
               <Route path="/lingvistik/trana" element={<TranaView />} />
               <Route path="/lingvistik/:lang" element={<LanguageLayout />}>
-                <Route index element={<Navigate to="ordforrad" replace />} />
-                <Route path="ordforrad"     element={<WordsView />} />
-                <Route path="grammatik"     element={<GrammarView />} />
-                <Route path="anteckningar"  element={<NotesView />} />
-                <Route path="fonologi"      element={<FonologiView />} />
-                <Route path="laslogg"       element={<LasloggView />} />
-                <Route path="ovningar"      element={<OvningarView />} />
-                <Route path="konjugationer" element={<KonjugationerView />} />
+                <Route index element={<LangIndexRedirect />} />
+                <Route path=":tab" element={<TabRenderer />} />
               </Route>
 
-              <Route path="/hp"         element={<HPView />} />
-              <Route path="/engagemang" element={<EngagemangView />} />
-              <Route path="/planering"  element={<div />} />
+              <Route path="/hp"      element={<HPView />} />
+              <Route path="/lasning" element={<LasningView />} />
+              <Route path="/engagemang"   element={<EngagemangView />} />
+              <Route path="/vardagskarta" element={<VardagskarteView />} />
+              <Route path="/planering"    element={<div />} />
             </Routes>
           </div>
         </div>

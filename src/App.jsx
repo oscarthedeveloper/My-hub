@@ -26,7 +26,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-bg">
+      <div className="flex h-dvh w-screen items-center justify-center bg-bg">
         <div className="flex flex-col items-center gap-3">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-accent" />
           <span className="font-mono text-[11px] text-muted">Ansluter…</span>
@@ -38,7 +38,10 @@ export default function App() {
   if (!user) return <LoginView />
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-bg">
+    <div
+      className="flex h-dvh w-screen overflow-hidden bg-bg"
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+    >
       {/* Subtilt grid-mönster */}
       <div
         className="pointer-events-none fixed inset-0 opacity-20"

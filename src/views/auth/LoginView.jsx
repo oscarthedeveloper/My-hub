@@ -61,7 +61,7 @@ export default function LoginView() {
   }
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-bg">
+    <div className="flex h-dvh w-screen items-center justify-center bg-bg" style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
 
       {/* Subtilt grid-mönster */}
       <div className="pointer-events-none fixed inset-0 opacity-[0.04]"
